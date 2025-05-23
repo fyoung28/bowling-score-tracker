@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import config from '../config';
 
 const ScoreEntry = () => {
   const { user } = useAuth();
@@ -144,7 +145,7 @@ const ScoreEntry = () => {
         gameNumber: 1
       };
 
-      const config = {
+      const axiosConfig = {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -152,7 +153,7 @@ const ScoreEntry = () => {
       };
 
       console.log('Submitting score:', scoreData);
-      const response = await axios.post(`${config.apiUrl}/api/scores`, scoreData, config);
+      const response = await axios.post(`${config.apiUrl}/api/scores`, scoreData, axiosConfig);
       console.log('Score saved successfully:', response.data);
       
       alert('Score saved successfully!');
