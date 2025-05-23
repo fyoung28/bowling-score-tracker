@@ -3,40 +3,39 @@ import {
   Container,
   Paper,
   Typography,
-  Grid,
-  TextField,
-  Button,
-  Box,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
+  Button,
+  Box,
 } from '@mui/material';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import config from '../config';
 
 const ScoreEntry = () => {
   const { user } = useAuth();
-  const [frames, setFrames] = useState(Array(10).fill({ firstRoll: '', secondRoll: '', thirdRoll: '' }));
+  const [frames, setFrames] = useState(Array(10).fill({ roll1: '', roll2: '', roll3: '' }));
   const [currentFrame, setCurrentFrame] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
   const [error, setError] = useState('');
 
-  const isStrike = (frame) => frame.firstRoll === '10';
-  const isSpare = (frame) => !isStrike(frame) && (parseInt(frame.firstRoll) + parseInt(frame.secondRoll) === 10);
+  const isStrike = (frame) => frame.roll1 === '10';
+  const isSpare = (frame) => !isStrike(frame) && (parseInt(frame.roll1) + parseInt(frame.roll2) === 10);
 
   const calculateFrameScore = (frameIndex) => {
     let score = 0;
     const frame = frames[frameIndex];
     
     // Basic score for the frame
-    score += (parseInt(frame.firstRoll) || 0) + (parseInt(frame.secondRoll) || 0);
+    score += (parseInt(frame.roll1) || 0) + (parseInt(frame.roll2) || 0);
     
     // Add third roll for 10th frame if needed
     if (frameIndex === 9) {
-      score += parseInt(frame.thirdRoll) || 0;
+      score += parseInt(frame.roll3) || 0;
     }
     
     // Add bonus for strikes and spares
@@ -46,13 +45,13 @@ const ScoreEntry = () => {
         const nextFrame = frames[frameIndex + 1];
         if (isStrike(nextFrame)) {
           // If next frame is also a strike, we need the first roll of the frame after that
-          score += 10 + (frameIndex < 8 ? parseInt(frames[frameIndex + 2].firstRoll) || 0 : parseInt(nextFrame.secondRoll) || 0);
+          score += 10 + (frameIndex < 8 ? parseInt(frames[frameIndex + 2].roll1) || 0 : parseInt(nextFrame.roll2) || 0);
         } else {
-          score += parseInt(nextFrame.firstRoll) || 0 + parseInt(nextFrame.secondRoll) || 0;
+          score += parseInt(nextFrame.roll1) || 0 + parseInt(nextFrame.roll2) || 0;
         }
       } else if (isSpare(frame)) {
         // Spare bonus: next roll
-        score += parseInt(frames[frameIndex + 1].firstRoll) || 0;
+        score += parseInt(frames[frameIndex + 1].roll1) || 0;
       }
     }
     
@@ -75,18 +74,18 @@ const ScoreEntry = () => {
     }
 
     // Special validation for second roll
-    if (roll === 'secondRoll') {
-      const firstRoll = parseInt(frames[frameIndex].firstRoll) || 0;
-      if (firstRoll + numValue > 10) {
+    if (roll === 'roll2') {
+      const roll1 = parseInt(frames[frameIndex].roll1) || 0;
+      if (roll1 + numValue > 10) {
         return;
       }
     }
 
     // Special validation for third roll in 10th frame
-    if (roll === 'thirdRoll' && frameIndex === 9) {
-      const firstRoll = parseInt(frames[frameIndex].firstRoll) || 0;
-      const secondRoll = parseInt(frames[frameIndex].secondRoll) || 0;
-      if (firstRoll < 10 && firstRoll + secondRoll < 10) {
+    if (roll === 'roll3' && frameIndex === 9) {
+      const roll1 = parseInt(frames[frameIndex].roll1) || 0;
+      const roll2 = parseInt(frames[frameIndex].roll2) || 0;
+      if (roll1 < 10 && roll1 + roll2 < 10) {
         return;
       }
     }
@@ -99,20 +98,20 @@ const ScoreEntry = () => {
     setFrames(newFrames);
 
     // Auto-advance to next frame or roll
-    if (roll === 'firstRoll' && value === '10') {
+    if (roll === 'roll1' && value === '10') {
       // Strike - move to next frame
       if (frameIndex < 9) {
         setCurrentFrame(frameIndex + 1);
       }
-    } else if (roll === 'firstRoll' && frameIndex < 9) {
+    } else if (roll === 'roll1' && frameIndex < 9) {
       // First roll (not a strike) - stay on same frame
       setCurrentFrame(frameIndex);
-    } else if (roll === 'secondRoll') {
+    } else if (roll === 'roll2') {
       // Second roll - move to next frame
       if (frameIndex < 9) {
         setCurrentFrame(frameIndex + 1);
       }
-    } else if (roll === 'thirdRoll' && frameIndex === 9) {
+    } else if (roll === 'roll3' && frameIndex === 9) {
       // Third roll in 10th frame - stay on 10th frame
       setCurrentFrame(9);
     }
@@ -135,9 +134,9 @@ const ScoreEntry = () => {
         userId: user.id,
         frames: frames.map((frame, index) => ({
           frameNumber: index + 1,
-          firstRoll: parseInt(frame.firstRoll) || 0,
-          secondRoll: parseInt(frame.secondRoll) || 0,
-          thirdRoll: index === 9 ? parseInt(frame.thirdRoll) || 0 : 0,
+          firstRoll: parseInt(frame.roll1) || 0,
+          secondRoll: parseInt(frame.roll2) || 0,
+          thirdRoll: index === 9 ? parseInt(frame.roll3) || 0 : 0,
           isStrike: isStrike(frame),
           isSpare: isSpare(frame),
           frameScore: calculateFrameScore(index)
@@ -158,7 +157,7 @@ const ScoreEntry = () => {
       console.log('Score saved successfully:', response.data);
       
       alert('Score saved successfully!');
-      setFrames(Array(10).fill({ firstRoll: '', secondRoll: '', thirdRoll: '' }));
+      setFrames(Array(10).fill({ roll1: '', roll2: '', roll3: '' }));
       setCurrentFrame(0);
       setError('');
     } catch (error) {
@@ -199,8 +198,8 @@ const ScoreEntry = () => {
                   <TableCell>
                     <TextField
                       type="number"
-                      value={frame.firstRoll}
-                      onChange={(e) => handleRollChange(index, 'firstRoll', e.target.value)}
+                      value={frame.roll1}
+                      onChange={(e) => handleRollChange(index, 'roll1', e.target.value)}
                       inputProps={{ min: 0, max: 10 }}
                       disabled={index !== currentFrame}
                       placeholder={isStrike(frame) ? 'X' : ''}
@@ -209,8 +208,8 @@ const ScoreEntry = () => {
                   <TableCell>
                     <TextField
                       type="number"
-                      value={frame.secondRoll}
-                      onChange={(e) => handleRollChange(index, 'secondRoll', e.target.value)}
+                      value={frame.roll2}
+                      onChange={(e) => handleRollChange(index, 'roll2', e.target.value)}
                       inputProps={{ min: 0, max: 10 }}
                       disabled={index !== currentFrame || isStrike(frame)}
                       placeholder={isSpare(frame) ? '/' : ''}
@@ -220,10 +219,10 @@ const ScoreEntry = () => {
                     {index === 9 && (
                       <TextField
                         type="number"
-                        value={frame.thirdRoll}
-                        onChange={(e) => handleRollChange(index, 'thirdRoll', e.target.value)}
+                        value={frame.roll3}
+                        onChange={(e) => handleRollChange(index, 'roll3', e.target.value)}
                         inputProps={{ min: 0, max: 10 }}
-                        disabled={index !== currentFrame || (frame.firstRoll !== '10' && parseInt(frame.firstRoll) + parseInt(frame.secondRoll) < 10)}
+                        disabled={index !== currentFrame || (frame.roll1 !== '10' && parseInt(frame.roll1) + parseInt(frame.roll2) < 10)}
                       />
                     )}
                   </TableCell>
@@ -259,7 +258,7 @@ const ScoreEntry = () => {
             variant="contained"
             color="secondary"
             onClick={handleSubmit}
-            disabled={currentFrame !== 9 || !frames[9].firstRoll || !frames[9].secondRoll}
+            disabled={currentFrame !== 9 || !frames[9].roll1 || !frames[9].roll2}
           >
             Save Score
           </Button>
