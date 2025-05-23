@@ -20,7 +20,6 @@ const ScoreEntry = () => {
   const { user } = useAuth();
   const [frames, setFrames] = useState(Array(10).fill({ roll1: '', roll2: '', roll3: '' }));
   const [currentFrame, setCurrentFrame] = useState(0);
-  const [totalScore, setTotalScore] = useState(0);
   const [error, setError] = useState('');
 
   const isStrike = (frame) => frame.roll1 === '10';
