@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -7,24 +7,23 @@ import {
   TextField,
   Button,
   Box,
+  Link,
 } from '@mui/material';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 import config from '../config';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
+    password: ''
   });
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     });
   };
 
@@ -32,11 +31,11 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post(`${config.apiUrl}/api/auth/login`, formData);
-      login(response.data.user, response.data.token);
-      navigate('/');
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      navigate('/dashboard');
     } catch (error) {
-      console.error('Login error:', error);
-      setError(error.response?.data?.message || 'Login failed. Please try again.');
+      setError(error.response?.data?.message || 'Login failed');
     }
   };
 
@@ -77,7 +76,7 @@ const Login = () => {
             variant="contained"
             color="primary"
             fullWidth
-            sx={{ mt: 3 }}
+            sx={{ mt: 2 }}
           >
             Login
           </Button>
@@ -85,7 +84,7 @@ const Login = () => {
         <Box sx={{ mt: 2, textAlign: 'center' }}>
           <Typography>
             Don't have an account?{' '}
-            <Link to="/register" style={{ textDecoration: 'none' }}>
+            <Link href="/register" underline="hover">
               Register here
             </Link>
           </Typography>

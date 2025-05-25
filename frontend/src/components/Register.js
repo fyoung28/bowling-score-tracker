@@ -7,9 +7,10 @@ import {
   TextField,
   Button,
   Box,
-  Alert,
+  Link,
 } from '@mui/material';
 import axios from 'axios';
+import config from '../config';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -17,56 +18,50 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.value
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/register', {
+      const response = await axios.post(`${config.apiUrl}/api/auth/register`, {
         name: formData.name,
         email: formData.email,
-        password: formData.password,
+        password: formData.password
       });
-
-      // Store the token and user data in localStorage
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      // Redirect to dashboard
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
-      setError(error.response?.data?.message || 'Error registering');
+      setError(error.response?.data?.message || 'Registration failed');
     }
   };
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom align="center">
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h4" gutterBottom>
           Register
         </Typography>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Typography color="error" sx={{ mb: 2 }}>
             {error}
-          </Alert>
+          </Typography>
         )}
-        <Box component="form" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
             label="Name"
@@ -108,13 +103,21 @@ const Register = () => {
           />
           <Button
             type="submit"
-            fullWidth
             variant="contained"
             color="primary"
-            sx={{ mt: 3 }}
+            fullWidth
+            sx={{ mt: 2 }}
           >
             Register
           </Button>
+        </form>
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography>
+            Already have an account?{' '}
+            <Link href="/login" underline="hover">
+              Login here
+            </Link>
+          </Typography>
         </Box>
       </Paper>
     </Container>
