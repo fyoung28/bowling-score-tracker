@@ -26,13 +26,29 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+// MongoDB Connection with better error handling
+const connectDB = async () => {
+  try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined in environment variables');
+    }
+    
+    console.log('Attempting to connect to MongoDB...');
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+    });
+    console.log('MongoDB connected successfully');
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    console.error('Connection string used:', process.env.MONGODB_URI.replace(/:[^:]*@/, ':****@')); // Hide password
+    process.exit(1); // Exit with failure
+  }
+};
+
+connectDB();
 
 // Routes
 app.use('/api/scores', require('./routes/scores'));
